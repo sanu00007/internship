@@ -516,7 +516,7 @@ void handle_get_html(json_t *old_root, struct client *client){
           }
           break;*/
         case REPORT_PROFIT_N_LOSS:
-            if(!process_profit_n_loss(root, from_date,date_format, 
+            if(!process_profit_n_loss(root, from_date,to_date,date_format, 
                 company_name, currency_symbol, currency_format, fp)){
             error = true;
           }

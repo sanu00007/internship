@@ -24,7 +24,7 @@ static double get_amount_from_account(json_t* account){
 
 static double print_bl_account(json_t* node, int level, CurrencyFormat *currency_format, 
     const char *currency_symbol, FILE *fp) {
-  const char *first_part = "<tr class=\"mat-row hide-bottom-border \" ><td class=\"mat-cell  \"><span class=\"d-flex align-items-center\" style=\"margin-left: ";
+  const char *first_part = "<tr    class=\"mat-row cdk-row ng-star-inserted\" style=""> <td   class=\"mat-cell cdk-cell cdk-column-account mat-column-account ng-star-inserted\"><span  					class=\"font-weight-600\" style=\"margin-left: ";
   fwrite(first_part, 1, strlen(first_part), fp);
   char tmp_buff[10];
   sprintf(tmp_buff, "%d", 25 * level);
@@ -37,7 +37,7 @@ static double print_bl_account(json_t* node, int level, CurrencyFormat *currency
     name = json_string_value(json_handle);
     fwrite(name, 1, strlen(name), fp);
   }
-  const char *third_part = "</span></span></td><td class=\"mat-cell  \"><span class=\"font-weight-500\"></span></td><td class=\"mat-cell report_total \"><span class=\"app-link \">";
+  const char *third_part = "<td   class=\"mat-cell cdk-cell cdk-column-account_code mat-column-account_code ng-star-inserted\"><span  class=\"font-weight-500\">  </span></td><td   class=\"mat-cell cdk-cell cdk-column-total mat-column-total ng-star-inserted\"><span  class=\"app-link icon-hover\"> ";
   fwrite(third_part, 1, strlen(third_part), fp);
   double value = 0;
   json_handle = json_object_get(node, "amount");
@@ -49,6 +49,9 @@ static double print_bl_account(json_t* node, int level, CurrencyFormat *currency
     fwrite("- ", 1, 2, fp);
     value = -value;
   }
+  if(value == 0){
+    fwrite("0.00", 1, 4, fp);
+    }
   if(value){
     if(currency_symbol){
       fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
@@ -92,7 +95,7 @@ static double print_bl_accnts_from_array(json_t* arr, int level, CurrencyFormat 
   return total;
 } 
 
-bool process_profit_n_loss(const json_t *root, int date, int date_format, 
+bool process_profit_n_loss(const json_t *root, int date,int to_date, int date_format, 
     const char* company_name, const char* currency_symbol, CurrencyFormat *currency_format, FILE *fp)
 {
    bool ret=false;
@@ -108,7 +111,7 @@ bool process_profit_n_loss(const json_t *root, int date, int date_format,
     const char* second_part="</h2><h2  class=\"mt-0 mb-0\">Profit and Loss</h2><h4  class=\"text-muted mt-0 font-weight-normal\">";
      fwrite(second_part, 1, strlen(second_part), fp);
      char *str_date = get_formated_date(date, date_format);
-     char *str_date2= get_formated_date(date,date_format);//wrong need to parse to date
+     char *str_date2= get_formated_date(to_date,date_format);
     char tmp_buff[100];
     snprintf(tmp_buff, 99, "%s to %s", str_date,str_date2);
     free(str_date);
@@ -270,6 +273,9 @@ bool process_profit_n_loss(const json_t *root, int date, int date_format,
       fwrite("- ", 1, 2, fp);
       total_other_income = -total_other_income;
     }
+     if(total_other_income == 0){
+    fwrite("0.00", 1, 4, fp);
+    }
     if(total_other_income){
       if(currency_symbol){
         fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
@@ -298,10 +304,15 @@ bool process_profit_n_loss(const json_t *root, int date, int date_format,
      
            const char* other_expense_first_part ="<tr    class=\"mat-row cdk-row ng-star-inserted\" style=""><td   class=\"mat-cell cdk-cell cdk-column-account mat-column-account ng-star-inserted\"><span  class=\"font-weight-600\" style=\"margin-left: 0px;\"> Total Non Operating Expense </span></td><td   class=\"mat-cell cdk-cell cdk-column-account_code mat-column-account_code ng-star-inserted\"><span  class=\"font-weight-500\">  </span></td><td   class=\"mat-cell cdk-cell cdk-column-total mat-column-total ng-star-inserted\"><span  class=\"app-link icon-hover\">";
     fwrite(other_expense_first_part, 1, strlen(other_expense_first_part), fp);
+    if(total_other_expense == 0){
+    fwrite("0.00", 1, 4, fp);
+    }
     if(total_other_expense < 0){
       fwrite("- ", 1, 2, fp);
       total_other_expense = -total_other_expense;
     }
+     
+    
     if(total_other_expense){
       if(currency_symbol){
         fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
