@@ -4,6 +4,7 @@
 #include "balance_sheet.h"
 #include "profit_n_loss.h"
 #include "wkhtmltox/pdf.h"
+#include "cash_flow.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ using namespace std;
 enum {
   REPORT_PROFIT_N_LOSS = 1,
   REPORT_BALANCE_SHEET=2,
-  REPORT_CASH_FLOW,
+  REPORT_CASH_FLOW=3,
 };
 
 struct account_map{
@@ -84,7 +85,8 @@ bool parse_account_map(const json_t *root, vector<account_map*> *accounts){
 
 void handle_get_html(json_t *old_root, struct client *client){
  
-  const char* my_input = 
+  const char* my_input =
+
   /*"{"
 " \"basis\": \"cash\","
 " \"date\": 1795839400,"
@@ -268,7 +270,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 "  \"start_time\": 1775017000"
 " }"
 "}";*/
-   "{"
+  /* "{"
 " \"basis\": \"cash\","
 " \"to_date\": 1795839400,"
 " \"from_date\": 1795839400,"
@@ -455,7 +457,197 @@ void handle_get_html(json_t *old_root, struct client *client){
 "   }"
 "  ]"
 " }"
-"}";
+"}";*/
+  "{"
+" \"basis\": \"cash\","
+" \"to_date\": 1795839400,"
+" \"from_date\": 1795839400,"
+" \"method\": 138,"
+" \"currency_symbol\": \"&#8377;\","
+" \"report_type\": 3,"
+" \"file_name\": \"cash_flow.html\","
+" \"date_format\": 1,"
+" \"company_name\": \"Kesans\","
+" \"currency_format\": {"
+"  \"group\": 2,"
+"  \"thousand_seperator\": 2,"
+"  \"sub_unit_seperator\": 3,"
+"  \"decimal_places\": 2"
+" },"
+" \"report\": {"
+"  \"cash_balance\": -100000.0,"
+"  \"operating_activities\": ["
+"   {"
+"    \"amount\": 24314999.878197011,"
+"    \"name\": \"Net Income\","
+"    \"id\": 26"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Accounts Payable\","
+"    \"id\": 26"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Accounts Receivable\","
+"    \"id\": 14"
+"   },"
+"   {"
+"    \"amount\": -4000.0,"
+"    \"name\": \"Advance Tax\","
+"    \"id\": 11"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Employee Advance\","
+"    \"id\": 4"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Employee Reimbursements\","
+"    \"id\": 17"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"GST Payable\","
+"    \"id\": 18,"
+"    \"sub_accounts\": ["
+"     {"
+"      \"amount\": 400.0,"
+"      \"name\": \"Output Cess\","
+"      \"id\": 62"
+"     },"
+"     {"
+"      \"amount\": 1220.450713,"
+"      \"name\": \"Output CGST\","
+"      \"id\": 20"
+"     },"
+"     {"
+"      \"amount\": 850.22425599999997,"
+"      \"name\": \"Output IGST\","
+"      \"id\": 19"
+"     },"
+"     {"
+"      \"amount\": 1220.450713,"
+"      \"name\": \"Output SGST\","
+"      \"id\": 21"
+"     }"
+"    ]"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Input Tax Credits\","
+"    \"id\": 5,"
+"    \"sub_accounts\": ["
+"     {"
+"      \"amount\": -0.0,"
+"      \"name\": \"Input Cess\","
+"      \"id\": 63"
+"     },"
+"     {"
+"      \"amount\": -305.80952500000001,"
+"      \"name\": \"Input CGST\","
+"      \"id\": 7"
+"     },"
+"     {"
+"      \"amount\": -1157996.236092,"
+"      \"name\": \"Input IGST\","
+"      \"id\": 6"
+"     },"
+"     {"
+"      \"amount\": -305.80952500000001,"
+"      \"name\": \"Input SGST\","
+"      \"id\": 8"
+"     }"
+"    ]"
+"   },"
+"   {"
+"    \"amount\": -147226.36187400002,"
+"    \"name\": \"Inventory Asset\","
+"    \"id\": 16"
+"   },"
+"   {"
+"    \"amount\": 224295.0,"
+"    \"name\": \"Opening Balance Adjustments\","
+"    \"id\": 22"
+"   },"
+"   {"
+"    \"amount\": -112832.20000000006,"
+"    \"name\": \"Prepaid Expenses\","
+"    \"id\": 10"
+"   },"
+"   {"
+"    \"amount\": -1454.770538,"
+"    \"name\": \"Reverse Charge Tax Input but not due\","
+"    \"id\": 9"
+"   },"
+"   {"
+"    \"amount\": -5478.1059070000028,"
+"    \"name\": \"Sales To Customers (Cash)\","
+"    \"id\": 64"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Tax Payable\","
+"    \"id\": 25"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"TCS Payable\","
+"    \"id\": 68"
+"   },"
+"   {"
+"    \"amount\": 1728.648236,"
+"    \"name\": \"TCS Receivable\","
+"    \"id\": 69"
+"   },"
+"   {"
+"    \"amount\": 1979.5697229999998,"
+"    \"name\": \"TDS Payable\","
+"    \"id\": 24"
+"   },"
+"   {"
+"    \"amount\": 131368.98454599999,"
+"    \"name\": \"TDS Receivable\","
+"    \"id\": 67"
+"   },"
+"   {"
+"    \"amount\": 403241.0,"
+"    \"name\": \"Unearned Revenue\","
+"    \"id\": 23"
+"   }"
+"  ],"
+"  \"investing_activities\": ["
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Furniture and Equipment\","
+"    \"id\": 15"
+"   }"
+"  ],"
+"  \"financing_activities\": ["
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Drawings\","
+"    \"id\": 28"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Opening Balance Offset\","
+"    \"id\": 31"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Owner's Equity\","
+"    \"id\": 30"
+"   },"
+"   {"
+"    \"amount\": -0.0,"
+"    \"name\": \"Retained Earnings\","
+"    \"id\": 29"
+"   }"
+"  ]"
+" }"
+" }";
   json_error_t err;
   json_t *root = json_loads(my_input, 0, &err);
   json_t *json_handle = json_object_get(root, "file_name");
@@ -515,13 +707,20 @@ void handle_get_html(json_t *old_root, struct client *client){
             error = true;
           }
           break;*/
-        case REPORT_PROFIT_N_LOSS:
+        /*case REPORT_PROFIT_N_LOSS:
             if(!process_profit_n_loss(root, from_date,to_date,date_format, 
                 company_name, currency_symbol, currency_format, fp)){
             error = true;
           }
+          break;*/
+        
+        case REPORT_CASH_FLOW:
+        if(!process_cash_flow(root, from_date,to_date,date_format, 
+                company_name, currency_symbol, currency_format, fp)){
+            error = true;
+          }
           break;
-        default:;
+          default:;
       }
     }
     if(error){
