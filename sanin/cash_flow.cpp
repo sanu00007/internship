@@ -45,6 +45,10 @@ static void print_total_for_cf_section(const char* section_name, double total,
     	   fwrite("- ", 1, 2, fp);
     	   total = -total;
         }
+        if(total==0)
+  	{
+  	   fwrite("0.00", 1, 4, fp);
+  	}
   	if(total)
   	{
     	   if(currency_symbol)
@@ -138,14 +142,14 @@ static double print_cf_accnts_from_array(json_t* arr, int level, CurrencyFormat 
   	int index = 0;
   	double total = 0;
   	json_array_foreach(arr, index, node)
-  	  {
-            if(json_is_object(node))
-            {
-      	     print_cf_account(node, level, currency_format, currency_symbol, fp);
-            }
-    	   total += get_amount_from_account(node);
-          }
-  	print_total_for_cf_section(section_name, total, currency_symbol, currency_format, level, fp);
+  	{
+           if(json_is_object(node))
+           {
+      	      print_cf_account(node, level, currency_format, currency_symbol, fp);
+           }
+         total += get_amount_from_account(node);
+        }
+  	
   	return total;
     } 
 
@@ -176,7 +180,7 @@ bool process_cash_flow(const json_t *root, int from_date,int to_date, int date_f
   	   fwrite(tmp_buff, 1, strlen(tmp_buff), fp);
   	   
   	   
-  	   const char* third_part= "</h4></div><div class=\"report-holder\"><table class=\"mat-table mat-sort w-100\"><thead ><tr class=\"mat-header-row \"><th class=\"mat-header-cell\" style=\"top: 0px; z-index: 100;\">Account</th><th mat-header-cell=\"\" class=\"mat-header-cell\" style=\"top: 0px; z-index: 100;\">Account Code</th><th class=\"mat-header-cell_total report_total\" style=\"top: 0px; z-index: 100;\">Total</th></tr></thead><tbody \"> <tr             class=\"mat-row\" > <td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-600\"> 1) Beginning Cash Balance </span></span></td><td    class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td    class=\"mat-cell \"><span  class=\"font-weight-600 \">  </span></td></tr><tr             class=\"mat-row \" ><td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-500 text-muted\"> A. Cash Flow from Operating Activities </span></span></td><td    class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td    class=\"mat-cell\"><span  class=\"font-weight-600 \">  </span></td> </tr>"; 
+  	   const char* third_part= "</h4></div><div class=\"report-holder\"><table class=\"mat-table mat-sort w-100\"><thead ><tr class=\"mat-header-row \"><th class=\"mat-header-cell\" style=\"top: 0px; z-index: 100;\">Account</th><th mat-header-cell=\"\" class=\"mat-header-cell\" style=\"top: 0px; z-index: 100;\">Account Code</th><th class=\"mat-header-cell_total report_total\" style=\"top: 0px; z-index: 100;\">Total</th></tr></thead><tbody \"> <tr             class=\"mat-row\" > <td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-600\"> 1) Beginning Cash Balance </span></span></td>"; 
         
            fwrite(third_part, 1, strlen(third_part), fp);
        
@@ -188,23 +192,217 @@ bool process_cash_flow(const json_t *root, int from_date,int to_date, int date_f
           
            }
            
+           
+           const char* beg_cash_part= "</span></span></td><td class=\"mat-cell td.mat-cell \"><span class=\"font-weight-500\"></span></td><td class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\">";
+           fwrite(beg_cash_part, 1, strlen(beg_cash_part), fp);
+           double beg_cash_balance=0;
+           json_t* cash_handle= json_object_get(report_handle, "cash_balance");
+           if(cash_handle && json_is_number(cash_handle))
+           {
+              beg_cash_balance = json_number_value(cash_handle);   
+           }
+           
+           if(beg_cash_balance < 0)
+           {
+    	      fwrite("- ", 1, 2, fp);
+    	      beg_cash_balance= -beg_cash_balance;
+  	   }
+  	   if(beg_cash_balance==0)
+     	   { 
+  	      fwrite("0.00", 1, 4, fp);
+  	   }
+  	   if(beg_cash_balance)
+  	   {
+    	      if(currency_symbol)
+    	      {
+      	          fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+    	      }
+              char *formatted_value = get_formatted_currency(currency_format, beg_cash_balance);
+     	      if(formatted_value)
+     	      {
+                 fwrite(formatted_value, 1, strlen(formatted_value), fp);
+      	         free(formatted_value);
+              }
+           }
+           const char *last_part_beg = "</span></td></tr>";
+  	   fwrite(last_part_beg, 1, strlen(last_part_beg), fp);
+           
+           const char *cash_flow= "<tr             class=\"mat-row \" ><td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-500 text-muted\"> A. Cash Flow from Operating Activities </span></span></td>";
+           fwrite(cash_flow, 1, strlen(cash_flow), fp);
+           
            double total_op_activities=0;
            json_t* arr_handle = json_object_get(report_handle, "operating_activities");
            if(arr_handle && json_is_array(arr_handle))
            {
               total_op_activities += print_cf_accnts_from_array(arr_handle, 1, currency_format, currency_symbol, "Operating Activities", fp);
         
-           } 
+           }
            
-       
-       
-       
-       
+           const char* net_cash_op_part= "   <trclass=\"mat-row  \" ><td style=\"padding: 10px; ; border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;  font-size: 15px; font-weight: bold;\"   class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-600\"> Net cash provided by Operating Activities </span></span> </td><td style=\"padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; text-align: center; font-size: 15px; font-weight: bold;\"class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td style=\" text-align: right; padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; font-size: 15px; font-weight: bold;\" class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\"> "; 
+          
+           fwrite(net_cash_op_part, 1, strlen(net_cash_op_part), fp);
+           if(total_op_activities < 0)
+           {
+    	      fwrite("- ", 1, 2, fp);
+    	      total_op_activities= -total_op_activities;
+  	   }
+  	   if(total_op_activities==0)
+     	   { 
+  	      fwrite("0.00", 1, 4, fp);
+  	   }
+  	   if(total_op_activities)
+  	   {
+    	      if(currency_symbol)
+    	      {
+      	          fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+    	      }
+              char *formatted_value = get_formatted_currency(currency_format, total_op_activities);
+     	      if(formatted_value)
+     	      {
+                 fwrite(formatted_value, 1, strlen(formatted_value), fp);
+      	         free(formatted_value);
+              }
+           }
+           
+           
+  	   const char *net_cash_last = "</span></td></tr>";
+  	   fwrite(net_cash_last, 1, strlen(net_cash_last), fp);
+           
+           arr_handle= json_object_get(report_handle, "investing_activities");
+           double total_investing_activities=0;
+           if(arr_handle && json_is_array(arr_handle))
+           {
+              const char* inv_act_part = "<tr class=\"mat-row \" ><td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-500 text-muted\"> B. Cash Flow from Investing Activities </span></span></td> <td class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td> <td class=\"mat-cel\"> <span  class=\"font-weight-600  \">  </span></td></tr>";
+              fwrite(inv_act_part, 1, strlen(inv_act_part), fp);  
+              total_investing_activities += print_cf_accnts_from_array(arr_handle, 1, currency_format, currency_symbol, "Investing Activities", fp);
+           
+           
+           }
+           
+           const char* net_cash_inv_part= "   <trclass=\"mat-row  \" ><td style=\"padding: 10px; ; border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;  font-size: 15px; font-weight: bold;\"   class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-600\"> Net cash provided by Investing Activities </span></span> </td><td style=\"padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; text-align: center; font-size: 15px; font-weight: bold;\"class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td style=\"padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; font-size: 15px; font-weight: bold;\" class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\"> "; 
+          
+           fwrite(net_cash_inv_part, 1, strlen(net_cash_inv_part), fp);
+           if(total_investing_activities < 0)
+           {
+    	      fwrite("- ", 1, 2, fp);
+    	      total_investing_activities= -total_investing_activities;
+  	   }
+  	   if(total_investing_activities==0)
+     	   { 
+  	      fwrite("0.00", 1, 4, fp);
+  	   }
+  	   if(total_investing_activities)
+  	   {
+    	      if(currency_symbol)
+    	      {
+      	          fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+    	      }
+              char *formatted_value = get_formatted_currency(currency_format, total_investing_activities);
+     	      if(formatted_value)
+     	      {
+                 fwrite(formatted_value, 1, strlen(formatted_value), fp);
+      	         free(formatted_value);
+              }
+           }
+           
+           fwrite(net_cash_last, 1, strlen(net_cash_last), fp);
+  	   
+           arr_handle= json_object_get(report_handle, "financing_activities");
+           double total_financing_activities=0;
+           if(arr_handle && json_is_array(arr_handle))
+           {
+              const char* fin_act_part= "<br></br><tr class=\"mat-row \" ><td    class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-500 text-muted\"> C. Cash Flow from Financing Activities </span></span></td> <td class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td> <td class=\"mat-cel\"> <span  class=\"font-weight-600  \">  </span></td></tr>";
+              fwrite(fin_act_part, 1, strlen(fin_act_part), fp);  
+              total_financing_activities += print_cf_accnts_from_array(arr_handle, 1, currency_format, currency_symbol, "Financing Activities", fp);
+              
+           
+           }
+           
+           const char* net_cash_fin_part= "   <trclass=\"mat-row  \" ><td style=\"padding: 10px; ; border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;  font-size: 15px; font-weight: bold;\"   class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"><span  class=\"font-weight-600\"> Net cash provided by Financing Activities </span></span> </td><td style=\"padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; text-align: center; font-size: 15px; font-weight: bold;\"class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td style=\"padding: 10px; ; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; font-size: 15px; font-weight: bold;\" class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\"> "; 
+          
+           fwrite(net_cash_fin_part, 1, strlen(net_cash_fin_part), fp);
+           if(total_financing_activities < 0)
+           {
+    	      fwrite("- ", 1, 2, fp);
+    	      total_financing_activities= -total_financing_activities;
+  	   }
+  	   if(total_financing_activities==0)
+     	   { 
+  	      fwrite("0.00", 1, 4, fp);
+  	   }
+  	   if(total_financing_activities)
+  	   {
+    	      if(currency_symbol)
+    	      {
+      	          fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+    	      }
+              char *formatted_value = get_formatted_currency(currency_format, total_financing_activities);
+     	      if(formatted_value)
+     	      {
+                 fwrite(formatted_value, 1, strlen(formatted_value), fp);
+      	         free(formatted_value);
+              }
+           }
+           
+           fwrite(net_cash_last, 1, strlen(net_cash_last), fp);
+           const char* net_change_part= " <tr class=\"mat-row \" > <td class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"> <span  class=\"font-weight-600\"> 2) Net Change in cash (A) + (B) + (C) </span></span></td><td class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\">";
+           fwrite(net_change_part, 1, strlen(net_change_part), fp);
+           double net_change_cash=0;  
+           net_change_cash= total_op_activities+ total_investing_activities+ total_financing_activities;
+           if(net_change_cash < 0)
+           {
+      	      fwrite("- ", 1, 2, fp);
+      	      net_change_cash = -net_change_cash;
+    	   }
+    	   if(net_change_cash)
+    	   {
+      	      if(currency_symbol)
+      	      {
+                 fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+      	      }
+      	      char *formatted_total_net_change_cash = get_formatted_currency(currency_format, net_change_cash);
+      	      if(formatted_total_net_change_cash)
+      	      {
+                 fwrite(formatted_total_net_change_cash, 1, strlen(formatted_total_net_change_cash), fp);
+                 free(formatted_total_net_change_cash);
+      	      }
+    	  }
+          const char *net_part = "</span></td></tr>";
+  	  fwrite(net_part, 1, strlen(net_part), fp);
+
+
+          const char *end_cash_part= "<tr class=\"mat-row \" > <td  class=\"mat-cell \"><span  class=\"d-flex align-items-center\" style=\"margin-left: 0px;\"> <span  class=\"font-weight-600\">  Ending Cash Balance = 1 - 2</span></span></td><td class=\"mat-cell\"><span  class=\"font-weight-500\"></span></td><td class=\"mat-celltd.mat-cell report_total \"><span class=\"font-weight-600\">";
+           fwrite(end_cash_part, 1, strlen(end_cash_part), fp);
+             
+           double end_cash_balance=0;  
+           end_cash_balance= net_change_cash-beg_cash_balance;
+           if(end_cash_balance < 0)
+           {
+      	      fwrite("- ", 1, 2, fp);
+      	      end_cash_balance = -end_cash_balance;
+    	   }
+    	   if(end_cash_balance)
+    	   {
+      	      if(currency_symbol)
+      	      {
+                 fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+      	      }
+      	      char* formatted_total_end_cash_balance = get_formatted_currency(currency_format, end_cash_balance);
+      	      if(formatted_total_end_cash_balance)
+      	      {
+                 fwrite(formatted_total_end_cash_balance, 1, strlen(formatted_total_end_cash_balance), fp);
+                 free(formatted_total_end_cash_balance);
+      	      }
+    	   }
+          
+  	   fwrite(net_part, 1, strlen(net_part), fp);
+           
+           
            ret=true;
        
-       }
+           }
        
-       while(0);
+         while(0);
        
-       return ret;
+         return ret;
      }
