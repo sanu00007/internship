@@ -458,14 +458,14 @@ void handle_get_html(json_t *old_root, struct client *client){
 "  ]"
 " }"
 "}";*/
-  "{"
+"{"
 " \"basis\": \"cash\","
 " \"to_date\": 1795839400,"
 " \"from_date\": 1795839400,"
 " \"method\": 138,"
 " \"currency_symbol\": \"&#8377;\","
 " \"report_type\": 3,"
-" \"file_name\": \"cash_flow.html\","
+" \"file_name\": \"/home/vinodgm/project_folders/images/test_school/files/7690b80bbd174051bb85fc8054315a36.html\","
 " \"date_format\": 1,"
 " \"company_name\": \"Kesans\","
 " \"currency_format\": {"
@@ -476,12 +476,8 @@ void handle_get_html(json_t *old_root, struct client *client){
 " },"
 " \"report\": {"
 "  \"cash_balance\": -100000.0,"
+"  \"net_income\": 24314999.878197011,"
 "  \"operating_activities\": ["
-"   {"
-"    \"amount\": 24314999.878197011,"
-"    \"name\": \"Net Income\","
-"    \"id\": 26"
-"   },"
 "   {"
 "    \"amount\": -0.0,"
 "    \"name\": \"Accounts Payable\","
@@ -647,7 +643,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 "   }"
 "  ]"
 " }"
-" }";
+"}";
   json_error_t err;
   json_t *root = json_loads(my_input, 0, &err);
   json_t *json_handle = json_object_get(root, "file_name");
