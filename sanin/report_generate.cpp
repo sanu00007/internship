@@ -5,6 +5,7 @@
 #include "profit_n_loss.h"
 #include "wkhtmltox/pdf.h"
 #include "cash_flow.h"
+#include "tds_summary.h"
 
 using namespace std;
 
@@ -13,6 +14,7 @@ enum {
   REPORT_PROFIT_N_LOSS = 1,
   REPORT_BALANCE_SHEET=2,
   REPORT_CASH_FLOW=3,
+  REPORT_TDS_SUMMARY=6,
 };
 
 struct account_map{
@@ -458,7 +460,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 "  ]"
 " }"
 "}";*/
-"{"
+/*"{"
 " \"basis\": \"cash\","
 " \"to_date\": 1795839400,"
 " \"from_date\": 1795839400,"
@@ -643,6 +645,113 @@ void handle_get_html(json_t *old_root, struct client *client){
 "   }"
 "  ]"
 " }"
+"}"*/
+"{"
+" \"to_date\": 1795839400,"
+" \"from_date\": 1795839400,"
+" \"is_by_vendor\": false,"
+" \"contact_mapping\": ["
+"  {"
+"   \"id\": 1,"
+"   \"name\": \"Mrs. Ponny\""
+"  },"
+"  {"
+"   \"id\": 2,"
+"   \"name\": \"Flashter Inc.\""
+"  },"
+"  {"
+"   \"id\": 3,"
+"   \"name\": \"Ethan\""
+"  },"
+"  {"
+"   \"id\": 4,"
+"   \"name\": \"Ganesh\""
+"  },"
+"  {"
+"   \"id\": 5,"
+"   \"name\": \"Ram\""
+"  },"
+"  {"
+"   \"id\": 6,"
+"   \"name\": \"Unitech Hi-tech Structures Ltd\""
+"  },"
+"  {"
+"   \"id\": 7,"
+"   \"name\": \"Mr. Jabu Ran\""
+"  },"
+"  {"
+"   \"id\": 8,"
+"   \"name\": \"VIRAT KOHLI\""
+"  },"
+"  {"
+"   \"id\": 9,"
+"   \"name\": \"Abc\""
+"  },"
+"  {"
+"   \"id\": 10,"
+"   \"name\": \"Gannu\""
+"  },"
+"  {"
+"   \"id\": 11,"
+"   \"name\": \"Sabu\""
+"  },"
+"  {"
+"   \"id\": 12,"
+"   \"name\": \"Mrs. Exporter\""
+"  },"
+"  {"
+"   \"id\": 13,"
+"   \"name\": \"Mr. aji dharman\""
+"  },"
+"  {"
+"   \"id\": 14,"
+"   \"name\": \"kuttu\""
+"  }"
+" ],"
+" \"method\": 138,"
+" \"currency_symbol\": \"&#8377;\","
+" \"report_type\": 6,"
+" \"file_name\": \"tds_report.html\","
+" \"date_format\": 1,"
+" \"company_name\": \"Kesans\","
+" \"currency_format\": {"
+"  \"group\": 2,"
+"  \"thousand_seperator\": 2,"
+"  \"sub_unit_seperator\": 3,"
+"  \"decimal_places\": 2"
+" },"
+" \"report\": {"
+"  \"items\": ["
+"   {"
+"    \"descs\": ["
+"     \"Dividend\""
+"    ],"
+"    \"section\": \"194\","
+"    \"tds\": 317.41999888420105,"
+"    \"total\": 3174.2199998842011,"
+"    \"total_after_tds\": 2856.8000010000001"
+"   },"
+"   {"
+"    \"descs\": ["
+"     \"Payment of contractors HUF/Individual\","
+"     \"Payment of contractors for Others\""
+"    ],"
+"    \"section\": \"194C\","
+"    \"tds\": 66796.649196684361,"
+"    \"total\": 6636433.0499988561,"
+"    \"total_after_tds\": 6569636.4008021718"
+"   },"
+"   {"
+"    \"descs\": ["
+"     \"Commission or Brokerage\""
+"    ],"
+"    \"section\": \"194H\","
+"    \"tds\": 86462.0,"
+"    \"total\": 1729240.0,"
+"    \"total_after_tds\": 1642778.0"
+"   }"
+"  ]"
+" }"
 "}";
   json_error_t err;
   json_t *root = json_loads(my_input, 0, &err);
@@ -710,12 +819,17 @@ void handle_get_html(json_t *old_root, struct client *client){
           }
           break;*/
         
-        case REPORT_CASH_FLOW:
+        /*case REPORT_CASH_FLOW:
         if(!process_cash_flow(root, from_date,to_date,date_format, 
                 company_name, currency_symbol, currency_format, fp)){
             error = true;
           }
-          break;
+          break;*/
+          case REPORT_TDS_SUMMARY:
+          	if(!process_tds_summary(root,from_date,to_date,date_format,company_name,currency_symbol,currency_format,fp)){
+          	error=true;
+          	}
+          	break;
           default:;
       }
     }
