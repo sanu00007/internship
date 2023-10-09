@@ -646,7 +646,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 "  ]"
 " }"
 "}"*/
-"{"
+/*"{"
 " \"to_date\": 1795839400,"
 " \"from_date\": 1795839400,"
 " \"is_by_vendor\": false,"
@@ -711,7 +711,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 " \"method\": 138,"
 " \"currency_symbol\": \"&#8377;\","
 " \"report_type\": 6,"
-" \"file_name\": \"tds_report.html\","
+" \"file_name\": \"tds_section.html\","
 " \"date_format\": 1,"
 " \"company_name\": \"Kesans\","
 " \"currency_format\": {"
@@ -752,6 +752,106 @@ void handle_get_html(json_t *old_root, struct client *client){
 "   }"
 "  ]"
 " }"
+"}";*/
+
+"{"
+" \"to_date\": 1795839400,"
+" \"from_date\": 1795839400,"
+" \"is_by_vendor\": true,"
+" \"contact_mapping\": ["
+"  {"
+"   \"id\": 1,"
+"   \"name\": \"Mrs. Ponny\""
+"  },"
+"  {"
+"   \"id\": 2,"
+"   \"name\": \"Flashter Inc.\""
+"  },"
+"  {"
+"   \"id\": 3,"
+"   \"name\": \"Ethan\""
+"  },"
+"  {"
+"   \"id\": 4,"
+"   \"name\": \"Ganesh\""
+"  },"
+"  {"
+"   \"id\": 5,"
+"   \"name\": \"Ram\""
+"  },"
+"  {"
+"   \"id\": 6,"
+"   \"name\": \"Unitech Hi-tech Structures Ltd\""
+"  },"
+"  {"
+"   \"id\": 7,"
+"   \"name\": \"Mr. Jabu Ran\""
+"  },"
+"  {"
+"   \"id\": 8,"
+"   \"name\": \"VIRAT KOHLI\""
+"  },"
+"  {"
+"   \"id\": 9,"
+"   \"name\": \"Abc\""
+"  },"
+"  {"
+"   \"id\": 10,"
+"   \"name\": \"Gannu\""
+"  },"
+"  {"
+"   \"id\": 11,"
+"   \"name\": \"Sabu\""
+"  },"
+"  {"
+"   \"id\": 12,"
+"   \"name\": \"Mrs. Exporter\""
+"  },"
+"  {"
+"   \"id\": 13,"
+"   \"name\": \"Mr. aji dharman\""
+"  },"
+"  {"
+"   \"id\": 14,"
+"   \"name\": \"kuttu\""
+"  }"
+" ],"
+" \"method\": 138,"
+" \"currency_symbol\": \"&#8377;\","
+" \"report_type\": 6,"
+" \"file_name\": \"tds_supplier.html\","
+" \"date_format\": 1,"
+" \"company_name\": \"Kesans\","
+" \"currency_format\": {"
+"  \"group\": 2,"
+"  \"thousand_seperator\": 2,"
+"  \"sub_unit_seperator\": 3,"
+"  \"decimal_places\": 2"
+" },"
+" \"report\": {"
+"  \"items\": ["
+"   {"
+"    \"vendor_id\": 11,"
+"    \"pan\": \"AABCK2815K\","
+"    \"tds\": 150734.6192176342,"
+"    \"total\": 8149533.2699996335,"
+"    \"total_after_tds\": 7998798.6507819993"
+"   },"
+"   {"
+"    \"vendor_id\": 12,"
+"    \"tds\": 2601.4499779343605,"
+"    \"total\": 216913.99999910602,"
+"    \"total_after_tds\": 214312.55002117166"
+"   },"
+"   {"
+"    \"vendor_id\": 14,"
+"    \"pan\": \"AABCJ8147P\","
+"    \"tds\": 240.0,"
+"    \"total\": 2400.0,"
+"    \"total_after_tds\": 2160.0"
+"   }"
+"  ]"
+" }"
 "}";
   json_error_t err;
   json_t *root = json_loads(my_input, 0, &err);
@@ -762,6 +862,7 @@ void handle_get_html(json_t *old_root, struct client *client){
   int from_date = 0;
   int to_date =0;
   int date_format = 0;
+  bool vendor_value=false;
   FILE *fp = NULL;
   do {
     if(!json_handle || !json_is_string(json_handle)){
@@ -798,6 +899,11 @@ void handle_get_html(json_t *old_root, struct client *client){
     if(json_handle && json_is_string(json_handle)){
       currency_symbol = strdup(json_string_value(json_handle));
     }
+    json_handle = json_object_get(root, "is_by_vendor");
+    if(json_handle && json_is_boolean(json_handle)){
+      vendor_value = json_boolean_value(json_handle);
+    }
+    
 
     CurrencyFormat *currency_format = get_currecny_format(root);
     
@@ -826,7 +932,7 @@ void handle_get_html(json_t *old_root, struct client *client){
           }
           break;*/
           case REPORT_TDS_SUMMARY:
-          	if(!process_tds_summary(root,from_date,to_date,date_format,company_name,currency_symbol,currency_format,fp)){
+          	if(!process_tds_summary(root,from_date,to_date,date_format,company_name,currency_symbol,currency_format,vendor_value,fp)){
           	error=true;
           	}
           	break;
