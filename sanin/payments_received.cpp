@@ -2,6 +2,8 @@
 #include "report_generate.h"
 
 
+double total_amount=0, total_balance=0;
+
 void payment_mapping(int value, FILE *fp){
 
    const char* mode=NULL;
@@ -117,6 +119,7 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
   json_handle = json_object_get(node, "amount");
   if(json_handle && json_is_number(json_handle)){
     amount=json_number_value(json_handle);
+    total_amount+=amount;
   }
   print_number_pr(amount, currency_format, currency_symbol, fp);
 
@@ -127,6 +130,7 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
   json_handle = json_object_get(node, "balance");
   if(json_handle && json_is_number(json_handle)){
     balance=json_number_value(json_handle);
+    total_balance+=balance;
   }
   print_number_pr(balance, currency_format, currency_symbol, fp);
 
@@ -198,35 +202,17 @@ bool process_payments_received(const json_t *root, int from_date,int to_date, in
     
     
    
+    const char* fourth_part = "<tr mat-footer-row="" class=\"mat-footer-row cdk-footer-row \"> <td mat-footer-cell="" class=\"mat-footer-cell    \"><span class=\"font-weight-600 \">Total</span></td> <td mat-footer-cell="" class=\"mat-footer-cell    \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  \"></td><td mat-footer-cell="" class=\"mat-footer-cell   \"></td><td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-notes mat-column-notes \"></td> <td mat-footer-cell="" class=\"mat-footer-cell   \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-amount mat-column-amount \"><span class=\"font-weight-600\">";
+    fwrite(fourth_part, 1, strlen(fourth_part), fp);
+    print_number_pr(total_amount, currency_format, currency_symbol, fp);
     
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+    const char* fifth_part ="</span></td><td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-balance \"><span class=\"font-weight-600\">";
+    fwrite(fifth_part, 1, strlen(fifth_part), fp);
+    print_number_pr(total_balance, currency_format, currency_symbol, fp);
+    
+    
+    const char* last_part="</span></td></tr>";
+    fwrite(last_part, 1, strlen(last_part), fp);
   
   
   
