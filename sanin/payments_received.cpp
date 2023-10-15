@@ -194,13 +194,82 @@ bool process_payments_received(const json_t *root, int from_date,int to_date, in
   
    parse_data_map(root, &account_mapping, "account_mapping");
    
-   json_t* arr_handle = json_object_get(report_handle, "items");
+     
+   json_t* group_handle = json_object_get(report_handle, "groups");
+         
+   if(group_handle && json_is_array(group_handle)){      //check whether group by is there or not
+       
+   json_t *node;
+   int index = 0;
+   json_array_foreach(group_handle, index, node){
+   if(json_is_object(node)){
+    
+    
+    json_t * field_handle = json_object_get(node, "field");
+    json_t * accnt_handle = json_object_get(field_handle, "value");
+    int value = stoi(json_string_value(accnt_handle));// convert string into integer
+    char * account_name ; 
+    for(auto account : account_mapping){
+      if(account->id == value){
+        if(account->name){
+        account_name = account->name;
+        }
+       break;
+      }
+    }
+    json_t * arr_handle = json_object_get(node, "items");
+    
+    if(arr_handle && json_is_array(arr_handle)){
+    
+     const char* group_by =R"(<tr role="row" mat-row="" class="mat-row cdk-row" style="border-top: 1px solid black; border-bottom: 1px solid black;">
+     <td role="cell" mat-cell="" class="mat-cell">
+     <span class="d-flex align-items-center" style="margin-left: 0px;">
+     <mat-icon role="img" class="mat-icon notranslate app-link icon-hover material-icons mat-icon-no-color" aria-hidden="true" data-mat-icon-type="font" style="">&gt;</mat-icon>
+     <span class="font-weight-600">Account: )";  
+     fwrite(group_by, 1, strlen(group_by), fp);
+     
+     fwrite(account_name, 1, strlen(account_name), fp);
+                     
+     const char* group_by_last = R"(
+     </span>
+     </span>
+     </td>
+     <td role="cell" mat-cell="" class="mat-cell">
+     <span class="app-link icon-hover"></span>
+     </td>
+     <td role="cell" mat-cell="" class="mat-cell">
+     <span class="font-weight-600"></span>
+     </td>
+     <td role="cell" mat-cell="" class="mat-cell"></td>
+     <td role="cell" mat-cell="" class="mat-cell"></td>
+     <td role="cell" mat-cell="" class="mat-cell"></td>
+     <td role="cell" mat-cell="" class="mat-cell"></td>
+     <td role="cell" mat-cell="" class="mat-cell">
+     <span class="app-link icon-hover"></span>
+     </td>
+     </tr>
+	)";
+    fwrite(group_by_last, 1, strlen(group_by_last), fp);
+      
+      print_pr_accnts_from_array( arr_handle,currency_format, 
+                            currency_symbol, &account_mapping, fp,date_format);   
+      }
+     }              
+    }
+   }
+ 
+ 
+ 
+   
+   else // if group by not there
+   {
+   json_t * arr_handle = json_object_get(report_handle, "items");
     if(arr_handle && json_is_array(arr_handle)){
       print_pr_accnts_from_array( arr_handle,currency_format, 
                             currency_symbol, &account_mapping, fp,date_format);
     }
-    
-    
+   } 
+   
    
     const char* fourth_part = "<tr mat-footer-row="" class=\"mat-footer-row cdk-footer-row \"> <td mat-footer-cell="" class=\"mat-footer-cell    \"><span class=\"font-weight-600 \">Total</span></td> <td mat-footer-cell="" class=\"mat-footer-cell    \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  \"></td><td mat-footer-cell="" class=\"mat-footer-cell   \"></td><td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-notes mat-column-notes \"></td> <td mat-footer-cell="" class=\"mat-footer-cell   \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-amount mat-column-amount \"><span class=\"font-weight-600\">";
     fwrite(fourth_part, 1, strlen(fourth_part), fp);
