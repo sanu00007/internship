@@ -5,18 +5,15 @@
 double total_amount=0, total_balance=0;
 
 void payment_mapping(int value, FILE *fp){
-
-   const char* mode=NULL;
-   if(value==2){
-   mode="Cash";
-   }
-   fwrite(mode, 1, strlen(mode), fp);
+  const char* mode=NULL;
+  if(value==2){
+    mode="Cash";
+  } else {
+    mode="Bank";
+  }
+  fwrite(mode, 1, strlen(mode), fp);
 
 }
-
-
-
-
 
 void print_number_pr(double value, CurrencyFormat *currency_format, 
       const char* currency_symbol, FILE *fp){
@@ -24,26 +21,27 @@ void print_number_pr(double value, CurrencyFormat *currency_format,
     fwrite("- ", 1, 2, fp);
     value = -value;
   }
-  
-  if(value || value==0){
-    if(currency_symbol){
-      fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
-    }
-    char *formatted_value = get_formatted_currency(currency_format, value);
-    if(formatted_value){
-      fwrite(formatted_value, 1, strlen(formatted_value), fp);
-      free(formatted_value);
-    }
+  if(currency_symbol){
+    fwrite(currency_symbol, 1, strlen(currency_symbol), fp);
+  }
+  char *formatted_value = get_formatted_currency(currency_format, value);
+  if(formatted_value){
+    fwrite(formatted_value, 1, strlen(formatted_value), fp);
+    free(formatted_value);
   }
 }
 
-
-static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
-  const char *currency_symbol, vector<data_map *> *account_mapping, FILE *fp,int date_format) {
-  const char *first_part = "<tr mat-row="" class=\"mat-row ng-star-inserted\" style=\"height:50px\"><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";   
-  fwrite(first_part, 1, strlen(first_part), fp);
+static void print_pr_account(json_t* node, CurrencyFormat *currency_format, const char *currency_symbol,
+    vector<data_map *> *account_mapping, FILE *fp, int date_format, bool is_group) {
   int date;
   json_t* json_handle; 
+  const char *first_part = "<tr mat-row="" class=\"mat-row ng-star-inserted\" style=\"height:50px\"><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\"><span";   
+  fwrite(first_part, 1, strlen(first_part), fp);
+  const char* span_buff = ">";
+  if(is_group){
+    span_buff = " style=\"margin-left:10px\">";
+  }
+  fwrite(span_buff, 1, strlen(span_buff), fp);
   json_handle = json_object_get(node, "date");
   if(json_handle && json_is_integer(json_handle)){
     date = json_integer_value(json_handle);
@@ -81,7 +79,6 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
     value=json_number_value(json_handle);
   }
   payment_mapping(value,fp);
-  
 
   const char* fifth_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(fifth_part, 1, strlen(fifth_part), fp);
@@ -91,8 +88,6 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
     const char *notes = json_string_value(json_handle);
     fwrite(notes, 1, strlen(notes), fp);
   }
-
-
 
   const char* sixth_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(sixth_part, 1, strlen(sixth_part), fp); 
@@ -109,8 +104,6 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
       }
     }
   }
-   
-
 
   const char* seventh_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\"><span  class=\"app-link icon-hover\">";
   fwrite(seventh_part, 1, strlen(seventh_part), fp);
@@ -134,27 +127,23 @@ static void print_pr_account(json_t* node,  CurrencyFormat *currency_format,
   }
   print_number_pr(balance, currency_format, currency_symbol, fp);
 
- 
-
   const char* last_part = "</span></td></tr>"; 
   fwrite(last_part, 1, strlen(last_part), fp);
 
 }
 
-
-
 static void print_pr_accnts_from_array(json_t* arr,  CurrencyFormat *currency_format, 
-  const char *currency_symbol, vector<data_map *> *account_mapping, FILE *fp,int date_format){
+    const char *currency_symbol, vector<data_map *> *account_mapping, 
+    FILE *fp, int date_format, bool is_group){
   json_t *node;
   int index = 0;
   json_array_foreach(arr, index, node){
     if(json_is_object(node)){
-      print_pr_account(node, currency_format, currency_symbol, account_mapping, fp,date_format);
+      print_pr_account(node, currency_format, currency_symbol, 
+                        account_mapping, fp,date_format, is_group);
     }
   } 
 }
-
-
 
 bool process_payments_received(const json_t *root, int from_date,int to_date, int date_format, 
   const char* company_name, const char* currency_symbol, CurrencyFormat *currency_format, FILE *fp){
@@ -192,84 +181,59 @@ bool process_payments_received(const json_t *root, int from_date,int to_date, in
       break;
     }
   
-   parse_data_map(root, &account_mapping, "account_mapping");
+    parse_data_map(root, &account_mapping, "account_mapping");
    
-     
-   json_t* group_handle = json_object_get(report_handle, "groups");
+    json_t* group_handle = json_object_get(report_handle, "groups");
          
-   if(group_handle && json_is_array(group_handle)){      //check whether group by is there or not
-       
-   json_t *node;
-   int index = 0;
-   json_array_foreach(group_handle, index, node){
-   if(json_is_object(node)){
-    
-    
-    json_t * field_handle = json_object_get(node, "field");
-    json_t * accnt_handle = json_object_get(field_handle, "value");
-    int value = stoi(json_string_value(accnt_handle));// convert string into integer
-    char * account_name ; 
-    for(auto account : account_mapping){
-      if(account->id == value){
-        if(account->name){
-        account_name = account->name;
-        }
-       break;
+    if(group_handle && json_is_array(group_handle)){      //check whether group by is there or not
+      json_t *node;
+      int index = 0;
+      json_array_foreach(group_handle, index, node){
+        if(json_is_object(node)){
+          json_t * field_handle = json_object_get(node, "field");
+          json_t * accnt_handle = json_object_get(field_handle, "value");
+          int value = stoi(json_string_value(accnt_handle));// convert string into integer
+          char * account_name ; 
+          for(auto account : account_mapping){
+            if(account->id == value){
+              if(account->name){
+              account_name = account->name;
+              }
+             break;
+            }
+          }
+          json_t * arr_handle = json_object_get(node, "items");
+          
+          if(arr_handle && json_is_array(arr_handle)){
+            const char* group_by =R"(<tr role="row" mat-row="" class="mat-row cdk-row" style="border-top: 1px solid black; border-bottom: 1px solid black;">
+            <td role="cell" colspan="8" mat-cell="" class="mat-cell">
+            <span class="d-flex align-items-center" style="margin-left: 0px;">
+            <mat-icon role="img" class="mat-icon notranslate app-link icon-hover material-icons mat-icon-no-color" aria-hidden="true" data-mat-icon-type="font" style="">&gt;</mat-icon>
+            <span class="font-weight-600">Account: )";  
+            fwrite(group_by, 1, strlen(group_by), fp);
+            
+            fwrite(account_name, 1, strlen(account_name), fp);
+                            
+            const char* group_by_last = R"(
+            </span>
+            </span>
+            </td>
+            </tr>
+            )";
+            fwrite(group_by_last, 1, strlen(group_by_last), fp);
+            
+            print_pr_accnts_from_array( arr_handle,currency_format, 
+                                  currency_symbol, &account_mapping, fp,date_format, true);   
+          }
+        }              
       }
-    }
-    json_t * arr_handle = json_object_get(node, "items");
-    
-    if(arr_handle && json_is_array(arr_handle)){
-    
-     const char* group_by =R"(<tr role="row" mat-row="" class="mat-row cdk-row" style="border-top: 1px solid black; border-bottom: 1px solid black;">
-     <td role="cell" mat-cell="" class="mat-cell">
-     <span class="d-flex align-items-center" style="margin-left: 0px;">
-     <mat-icon role="img" class="mat-icon notranslate app-link icon-hover material-icons mat-icon-no-color" aria-hidden="true" data-mat-icon-type="font" style="">&gt;</mat-icon>
-     <span class="font-weight-600">Account: )";  
-     fwrite(group_by, 1, strlen(group_by), fp);
-     
-     fwrite(account_name, 1, strlen(account_name), fp);
-                     
-     const char* group_by_last = R"(
-     </span>
-     </span>
-     </td>
-     <td role="cell" mat-cell="" class="mat-cell">
-     <span class="app-link icon-hover"></span>
-     </td>
-     <td role="cell" mat-cell="" class="mat-cell">
-     <span class="font-weight-600"></span>
-     </td>
-     <td role="cell" mat-cell="" class="mat-cell"></td>
-     <td role="cell" mat-cell="" class="mat-cell"></td>
-     <td role="cell" mat-cell="" class="mat-cell"></td>
-     <td role="cell" mat-cell="" class="mat-cell"></td>
-     <td role="cell" mat-cell="" class="mat-cell">
-     <span class="app-link icon-hover"></span>
-     </td>
-     </tr>
-	)";
-    fwrite(group_by_last, 1, strlen(group_by_last), fp);
-      
-      print_pr_accnts_from_array( arr_handle,currency_format, 
-                            currency_symbol, &account_mapping, fp,date_format);   
+    } else {// if group by not there
+      json_t * arr_handle = json_object_get(report_handle, "items");
+      if(arr_handle && json_is_array(arr_handle)){
+         print_pr_accnts_from_array( arr_handle,currency_format, 
+                               currency_symbol, &account_mapping, fp,date_format, false);
       }
-     }              
-    }
-   }
- 
- 
- 
-   
-   else // if group by not there
-   {
-   json_t * arr_handle = json_object_get(report_handle, "items");
-    if(arr_handle && json_is_array(arr_handle)){
-      print_pr_accnts_from_array( arr_handle,currency_format, 
-                            currency_symbol, &account_mapping, fp,date_format);
-    }
-   } 
-   
+    } 
    
     const char* fourth_part = "<tr mat-footer-row="" class=\"mat-footer-row cdk-footer-row \"> <td mat-footer-cell="" class=\"mat-footer-cell    \"><span class=\"font-weight-600 \">Total</span></td> <td mat-footer-cell="" class=\"mat-footer-cell    \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  \"></td><td mat-footer-cell="" class=\"mat-footer-cell   \"></td><td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-notes mat-column-notes \"></td> <td mat-footer-cell="" class=\"mat-footer-cell   \"></td> <td mat-footer-cell="" class=\"mat-footer-cell  cdk-column-amount mat-column-amount \"><span class=\"font-weight-600\">";
     fwrite(fourth_part, 1, strlen(fourth_part), fp);
@@ -279,13 +243,10 @@ bool process_payments_received(const json_t *root, int from_date,int to_date, in
     fwrite(fifth_part, 1, strlen(fifth_part), fp);
     print_number_pr(total_balance, currency_format, currency_symbol, fp);
     
-    
     const char* last_part="</span></td></tr>";
     fwrite(last_part, 1, strlen(last_part), fp);
   
-  
-  
-  ret= true;
+    ret= true;
   }while(0);
   
   
