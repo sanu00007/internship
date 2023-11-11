@@ -1,5 +1,6 @@
 #include "payments_received.h"
 #include "report_generate.h"
+#include <string>
 
 
 

@@ -20,8 +20,8 @@ static void print_is_account(json_t* node, FILE *fp) {
 
   json_handle = json_object_get(node, "quantity_in");
   if(json_handle && json_is_number(json_handle)){
-    int quantity_in = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_in);
+    float quantity_in = json_integer_value(json_handle);
+    fprintf(fp, "%0.1f", quantity_in);
   }
 
   const char* third_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
@@ -29,44 +29,45 @@ static void print_is_account(json_t* node, FILE *fp) {
   
   json_handle = json_object_get(node, "quantity_out");
   if(json_handle && json_is_number(json_handle)){
-    int quantity_out = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_out);
+    float quantity_out = json_integer_value(json_handle);
+    fprintf(fp, "%0.1f", quantity_out);
   }
   
   const char* fourth_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(fourth_part, 1, strlen(fourth_part), fp);
   
-  json_handle = json_object_get(node, "quantity_out");
+  json_handle = json_object_get(node, "current_stock");
   if(json_handle && json_is_number(json_handle)){
-    int quantity_out = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_out);
+    int current_stock = json_integer_value(json_handle);
+    fprintf(fp, "%d", current_stock);
   }
   
   const char* fifth_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(fifth_part, 1, strlen(fifth_part), fp);
   
-  json_handle = json_object_get(node, "quantity_out");
+  json_handle = json_object_get(node, "ordered");
+  int ordered=0;
   if(json_handle && json_is_number(json_handle)){
-     int quantity_out = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_out);
+     ordered = json_integer_value(json_handle);
+    fprintf(fp, "%d", ordered);
   }
   
   const char* sixth_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(sixth_part, 1, strlen(sixth_part), fp);
   
-  json_handle = json_object_get(node, "quantity_out");
+  json_handle = json_object_get(node, "committed");
+  int committed=0;
   if(json_handle && json_is_number(json_handle)){
-     int quantity_out = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_out);
+      committed = json_integer_value(json_handle);
+    fprintf(fp, "%d", committed);
   }
    const char* seventh_part = "</span></td><td class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\">";
   fwrite(seventh_part, 1, strlen(seventh_part), fp);
   
-  json_handle = json_object_get(node, "quantity_out");
-  if(json_handle && json_is_number(json_handle)){
-     int quantity_out = json_integer_value(json_handle);
-    fprintf(fp, "%d", quantity_out);
-  }
+  
+     int available = ordered-committed;
+    fprintf(fp, "%d", available);
+  
 
   const char* last_part = "</span></td></tr>"; 
   fwrite(last_part, 1, strlen(last_part), fp);

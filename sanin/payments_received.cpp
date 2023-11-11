@@ -1,5 +1,6 @@
 #include "payments_received.h"
 #include "report_generate.h"
+#include <string>
 
 
 double total_amount=0, total_balance=0;
