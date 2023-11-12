@@ -446,7 +446,7 @@ void handle_get_html(json_t *old_root, struct client *client){
 "   {"
 "    \"field\": {"
 "     \"name\": \"sales_account\","
-"     \"value\": \"33\""
+"     \"value\": \"\""
 "    },"
 "    \"items\": ["
 "     {"

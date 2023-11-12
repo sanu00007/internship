@@ -121,58 +121,53 @@ bool process_inventory_valuation_summary(const json_t *root, int from_date,int t
       json_t *node;
       int index = 0;
       json_array_foreach(group_handle, index, node){
-        if(json_is_object(node)){
-          json_t * field_handle = json_object_get(node, "field");
-          json_t * accnt_handle = json_object_get(field_handle, "name");
-          const char* field_name=NULL;
-          if(accnt_handle && json_is_string(accnt_handle)){
-          field_name=json_string_value(accnt_handle);
-          
-          }
-          
-          if (field_name && strcmp(field_name, "custom_label") == 0) {
-            
-
+    if(json_is_object(node)){
+      json_t * field_handle = json_object_get(node, "field");
+      json_t * accnt_handle = json_object_get(field_handle, "name");
+      const char* field_name=NULL;
+      if(accnt_handle && json_is_string(accnt_handle)){
+         field_name=json_string_value(accnt_handle);          
+          }          
+      if (field_name && strcmp(field_name, "custom_label") == 0) {        
             json_t* arr_handle = json_object_get(node, "items");
-
             print_ivs_accnts_from_array(arr_handle, currency_format,
                                          currency_symbol, &item_mapping, fp, date_format, true);
         }
         
-        else if(field_name && strcmp(field_name, "sales_account") == 0) 
-        {
-        
-        
-        
-        json_t * arr_handle = json_object_get(node, "items");
-        const char* group_by ="<tr mat-row="" class=\"mat-row ng-star-inserted\" style=\"height:50px\"><td colspan=\"3\" class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\"><span  class=\"app-link icon-hover\">>Sales Account: [";     
-            fwrite(group_by, 1, strlen(group_by), fp); 
-            
-            parse_data_map(root, &account_mapping, "account_mapping");
-            json_t* value_handle = json_object_get(field_handle,"value");
-            
-            int value = atoi(json_string_value(value_handle));//note when the value in field structure is NULL the code won't work
-            char * account_name=NULL ; 
-          for(auto account : account_mapping){
-            if(account->id == value){
-              if(account->name){
-              account_name = account->name;
-              }
+      else if(field_name && strcmp(field_name, "sales_account") == 0){                        
+        json_t * arr_handle = json_object_get(node, "items");            
+        parse_data_map(root, &account_mapping, "account_mapping");
+        json_t* value_handle = json_object_get(field_handle,"value");
+        int value=0;
+        const char* val_str=json_string_value(value_handle);
+      if(val_str && strcmp(val_str, "") == 0){
+         const char* group_by ="<tr mat-row="" class=\"mat-row ng-star-inserted\" style=\"height:50px\"><td colspan=\"3\" class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\"><span  class=\"app-link icon-hover\">>Sales Account: ";     
+         fwrite(group_by, 1, strlen(group_by), fp); 
+         print_ivs_accnts_from_array( arr_handle,currency_format, 
+                                  currency_symbol, &item_mapping, fp,date_format, true);  
+         }
+         
+     else{
+     
+         const char* group_by ="<tr mat-row="" class=\"mat-row ng-star-inserted\" style=\"height:50px\"><td colspan=\"3\" class=\"mat-cell\" style=\"top: 0px; z-index: 100; text-align:left\"><span  class=\"app-link icon-hover\">>Sales Account: [";     
+         fwrite(group_by, 1, strlen(group_by), fp); 
+         value = atoi(val_str);
+         char * account_name=NULL ; 
+         for(auto account : account_mapping){
+           if(account->id == value){
+            if(account->name){
+             account_name = account->name;
+             }
              break;
-            }
-          }
-          fwrite(account_name, 1, strlen(account_name), fp);
-          fprintf(fp, "]");
-           print_ivs_accnts_from_array( arr_handle,currency_format, 
+           }
+         }
+         fwrite(account_name, 1, strlen(account_name), fp);
+         fprintf(fp, "]");
+         print_ivs_accnts_from_array( arr_handle,currency_format, 
                                   currency_symbol, &item_mapping, fp,date_format, true); 
                                   
-        
-        }
-          
-          
-            
-                                   
-          
+           }
+         }                 
         }              
       }
     }
