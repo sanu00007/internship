@@ -13,4 +13,4 @@ Briefly describe the purpose and goals of your project. What problem does it sol
 ## Technologies Used
 
 - C++
-- Any additional libraries or tools used in your project.
+- jansson for handling json
